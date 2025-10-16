@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Accelerometer Test</title>
+</head>
+<body>
+  <h1>Accelerometer Test</h1>
+  <p id="output">Tap to enable motion</p>
+
+  <script>
+    const output = document.getElementById("output");
+
+    function handleMotion(event) {
+      const acc = event.accelerationIncludingGravity;
+      if (acc) {
+        output.textContent = `x: ${acc.x.toFixed(2)}, y: ${acc.y.toFixed(2)}, z: ${acc.z.toFixed(2)}`;
+      }
+    }
+
+    // iOS requires explicit permission
+    if (typeof DeviceMotionEvent.requestPermission === 'function') {
+      document.body.addEventListener('click', () => {
+        DeviceMotionEvent.requestPermission().then(response => {
+          if (response === 'granted') {
+            window.addEventListener("devicemotion", handleMotion);
+            output.textContent = "Motion enabled!";
+          } else {
+            output.textContent = "Permission denied.";
+          }
+        });
+      });
+    } else {
+      // Non‑iOS browsers
+      window.addEventListener("devicemotion", handleMotion);
+    }
+  </script>
+</body>
+</html>

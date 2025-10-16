@@ -1,23 +1,50 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Accelerometer Test</title>
+  <title>Tilt Steering Demo</title>
+  <style>
+    body { margin:0; overflow:hidden; }
+    #car {
+      width: 50px; height: 50px;
+      background: red; position: absolute;
+      bottom: 20px; left: 50%;
+      transform: translateX(-50%);
+    }
+  </style>
 </head>
 <body>
-  <h1>Accelerometer Test</h1>
-  <p id="output">Tap to enable motion</p>
+  <div id="car"></div>
+  <p id="output" style="position:fixed;top:10px;left:10px;color:#333;"></p>
 
   <script>
+    const car = document.getElementById("car");
     const output = document.getElementById("output");
+
+    let posX = window.innerWidth / 2;
+    let smoothX = 0;
+    const alpha = 0.1; // smoothing factor
 
     function handleMotion(event) {
       const acc = event.accelerationIncludingGravity;
       if (acc) {
-        output.textContent = `x: ${acc.x.toFixed(2)}, y: ${acc.y.toFixed(2)}, z: ${acc.z.toFixed(2)}`;
+        // Smooth the x-axis acceleration
+        smoothX = alpha * acc.x + (1 - alpha) * smoothX;
+
+        // Map tilt to horizontal movement
+        posX += smoothX * 2; // adjust multiplier for sensitivity
+
+        // Keep within screen bounds
+        posX = Math.max(0, Math.min(window.innerWidth - 50, posX));
+
+        // Update car position
+        car.style.left = posX + "px";
+
+        // Debug output
+        output.textContent = `Tilt: ${smoothX.toFixed(2)} | posX: ${posX.toFixed(0)}`;
       }
     }
 
-    // iOS requires explicit permission
+    // iOS requires permission
     if (typeof DeviceMotionEvent.requestPermission === 'function') {
       document.body.addEventListener('click', () => {
         DeviceMotionEvent.requestPermission().then(response => {
@@ -30,7 +57,6 @@
         });
       });
     } else {
-      // Non‑iOS browsers
       window.addEventListener("devicemotion", handleMotion);
     }
   </script>
